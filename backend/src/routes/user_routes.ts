@@ -6,6 +6,7 @@ env.config();
 export const user = express.Router();
 
 user.post('/signup', async (req, res)=>{
+
     signup(req,res);
 });
 

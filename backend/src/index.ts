@@ -2,6 +2,7 @@ import express from 'express';
 import env from 'dotenv';
 import mongoose from 'mongoose';
 import {user} from './routes/user_routes';
+import {todo} from './routes/todo_routes';
 env.config();
 
 const app = express();
@@ -10,6 +11,7 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use('/', user);
+app.use('/',todo);
 
 app.listen(port, async ()=>{
     await mongoose.connect(process.env.MONGODB_URL as string);

@@ -16,14 +16,23 @@ exports.login = exports.signup = void 0;
 const user_1 = require("../models/user");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const argon2_1 = __importDefault(require("argon2"));
 dotenv_1.default.config();
 const JWT_SECRET = process.env.JWT_PASSWORD;
 const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //take input from req.body
     const { email, password } = req.body;
     try {
-        //check if user already exists
-        yield user_1.UserModel.create({ email, password });
+        const user = yield user_1.UserModel.findOne({
+            email
+        });
+        if (user) {
+            return res.status(400).send({
+                message: 'User already exists'
+            });
+        }
+        const hashedpassword = yield argon2_1.default.hash(password);
+        yield user_1.UserModel.create({ email, password: hashedpassword });
         res.status(200).send({
             message: 'User created successfully'
         });
@@ -39,17 +48,17 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     try {
         const user = yield user_1.UserModel.findOne({
-            email,
-            password
+            email
         });
         if (!user) {
             return res.status(401).send({
                 message: "Invalid creadentials"
             });
         }
+        const passvalid = yield argon2_1.default.verify(user.password, password);
+        //jwt verify for futher verifications and all.
         const token = jsonwebtoken_1.default.sign({
-            email,
-            password
+            id: user._id
         }, JWT_SECRET);
         res.status(200).send({
             token
