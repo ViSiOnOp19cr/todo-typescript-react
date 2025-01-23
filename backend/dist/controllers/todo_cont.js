@@ -13,6 +13,28 @@ exports.addtags = exports.getTodosbytags = exports.updateTodo = exports.deleteTo
 const todo_1 = require("../models/todo");
 const tag_1 = require("../models/tag");
 const getTodos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId;
+        const todos = yield todo_1.TodoModel.find({
+            userId
+        });
+        if (!todos) {
+            res.status(400).send({
+                message: "no todos avaliable for this user"
+            });
+        }
+        else {
+            res.json({
+                todos
+            });
+        }
+        ;
+    }
+    catch (e) {
+        res.status(500).send({
+            message: 'internal server error'
+        });
+    }
 });
 exports.getTodos = getTodos;
 const addTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -72,12 +94,101 @@ const addTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.addTodo = addTodo;
 const deleteTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId;
+        const { todoId } = req.body;
+        // Check if the todo exists and belongs to the user
+        const todo = yield todo_1.TodoModel.findOne({ _id: todoId, userId });
+        if (!todo) {
+            console.log('Todo not found or user not authorized to delete this todo');
+            return res.status(404).send({
+                message: 'Todo not found or user not authorized to delete this todo'
+            });
+        }
+        const deletetodo = yield todo_1.TodoModel.findOneAndDelete({
+            _id: todoId,
+            userId: userId
+        });
+        if (deletetodo) {
+            res.status(200).send({
+                message: 'Todo deleted successfully'
+            });
+        }
+        else {
+            res.status(400).send({
+                message: 'Bad request'
+            });
+        }
+    }
+    catch (e) {
+        res.status(500).send({
+            message: 'internal server error'
+        });
+    }
 });
 exports.deleteTodo = deleteTodo;
 const updateTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { title, content, tags } = req.body;
+        const userId = req.userId;
+        const todoId = req.params;
+        const tagIds = yield tag_1.TagModel.findOneAndUpdate({
+            _id: todoId,
+            userId
+        }, {
+            title,
+            content,
+            tags
+        }, {
+            new: true
+        });
+        if (tagIds) {
+            res.status(200).send({
+                message: 'Todo updated successfully'
+            });
+        }
+        else {
+            res.status(400).send({
+                message: 'Bad request'
+            });
+        }
+    }
+    catch (e) {
+        res.status(500).send({
+            message: 'internal server error'
+        });
+    }
 });
 exports.updateTodo = updateTodo;
 const getTodosbytags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId;
+        const { tags } = req.body;
+        console.log(tags);
+        const tagIds = yield tag_1.TagModel.find({ name: { $in: tags } }).select('_id');
+        const tagObjectIds = tagIds.map(tag => tag._id);
+        console.log('Tag ObjectIds:', tagObjectIds);
+        // Find todos with the specified tags
+        const todos = yield todo_1.TodoModel.find({
+            userId,
+            tags: { $in: tagObjectIds }
+        });
+        if (!todos) {
+            res.status(200).send({
+                message: 'Todos of tags notfound'
+            });
+        }
+        else {
+            res.json({
+                todos
+            });
+        }
+    }
+    catch (e) {
+        res.status(500).send({
+            message: 'internal server error'
+        });
+    }
 });
 exports.getTodosbytags = getTodosbytags;
 const addtags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {

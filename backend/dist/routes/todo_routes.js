@@ -23,10 +23,10 @@ exports.todo.get('/gettodos', usermiddlewares_1.usermiddlewares, (req, res) => _
 exports.todo.post('/addtodo', usermiddlewares_1.usermiddlewares, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     (0, todo_cont_1.addTodo)(req, res);
 }));
-exports.todo.delete('/delete/:id', usermiddlewares_1.usermiddlewares, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.todo.delete('/deletes', usermiddlewares_1.usermiddlewares, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     (0, todo_cont_1.deleteTodo)(req, res);
 }));
-exports.todo.put('/update/:id', usermiddlewares_1.usermiddlewares, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.todo.put('/update', usermiddlewares_1.usermiddlewares, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     (0, todo_cont_1.updateTodo)(req, res);
 }));
 exports.todo.get('/gettodobytags', usermiddlewares_1.usermiddlewares, (req, res) => __awaiter(void 0, void 0, void 0, function* () {

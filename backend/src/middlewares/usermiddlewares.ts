@@ -19,7 +19,7 @@ export const usermiddlewares = (req:CustomRequest, res:Response, next:NextFuncti
             return;    
         }
         req.userId = decoded.id;
-        console.log('done with middlewares');
+
         next()
     }
     else{

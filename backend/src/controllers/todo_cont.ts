@@ -7,6 +7,26 @@ interface CustomRequest extends Request {
 }
 
 export const getTodos = async (req:CustomRequest, res:Response)=>{
+    try{
+    const userId = req.userId;
+    const todos = await TodoModel.find({
+        userId
+    });
+    if(!todos){
+        res.status(400).send({
+            message:"no todos avaliable for this user"
+        })
+    }
+    else{
+        res.json({
+            todos
+        })
+    };
+}catch(e){
+    res.status(500).send({
+        message:'internal server error'
+    });
+}
     
 };
 export const addTodo = async(req:CustomRequest,res:Response)=>{
@@ -55,7 +75,7 @@ export const addTodo = async(req:CustomRequest,res:Response)=>{
                     message:'Bad request'
                 });
             }
-        }
+            }
         }
         
     }
@@ -66,13 +86,98 @@ export const addTodo = async(req:CustomRequest,res:Response)=>{
     }
 };
 export const deleteTodo = async(req:CustomRequest, res:Response)=>{
+    try{
+        const userId = req.userId;
+        const {todoId}= req.body;
+        // Check if the todo exists and belongs to the user
+        const todo = await TodoModel.findOne({ _id: todoId, userId });
+        if (!todo) {
+            console.log('Todo not found or user not authorized to delete this todo');
+            return res.status(404).send({
+                message: 'Todo not found or user not authorized to delete this todo'
+            });
+        }
+        const deletetodo = await TodoModel.findOneAndDelete({
+            _id:todoId,
+            userId:userId
+        });
+        if(deletetodo){
+            res.status(200).send({
+                message:'Todo deleted successfully'
+            });
+        }
+        else{
+            res.status(400).send({
+                message:'Bad request'
+            });
+        }
+    }catch(e){
+        res.status(500).send({
+            message:'internal server error'
+        });
+    }
 
 };
 export const updateTodo = async(req:CustomRequest, res:Response)=>{
-
+    try{
+        const {title,content,tags} = req.body;
+        const userId = req.userId!;
+        const todoId = req.params;
+        const tagIds = await TagModel.findOneAndUpdate({
+            _id:todoId,
+            userId
+        },{
+            title,
+            content,
+            tags
+        },{
+            new:true
+        });
+        if(tagIds){
+            res.status(200).send({
+                message:'Todo updated successfully'
+            });
+        }
+        else{
+            res.status(400).send({
+                message:'Bad request'
+            });
+        }
+    }
+    
+    catch(e){
+        res.status(500).send({
+            message:'internal server error'
+        });
+    }
 };
 export const getTodosbytags = async(req:CustomRequest, res:Response)=>{
+    try{
+        const userId = req.userId;
+        const {tags} = req.body;
 
+        const tagIds = await TagModel.find({ name: { $in: tags } }).select('_id');
+        const tagObjectIds = tagIds.map(tag => tag._id);
+
+        const todos = await TodoModel.find({
+            userId,
+            tags: { $in: tagObjectIds }
+        });
+        if(!todos){
+            res.status(200).send({
+                message:'Todos of tags notfound'
+            });
+        }
+        else{
+            res.json({
+                todos
+            });
+        }
+    }catch(e){
+        res.status(500).send({
+            message:'internal server error'
+        });
+    }
 
 };
 export const addtags = async(req:CustomRequest, res:Response)=>{

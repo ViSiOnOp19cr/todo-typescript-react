@@ -19,7 +19,6 @@ const usermiddlewares = (req, res, next) => {
             return;
         }
         req.userId = decoded.id;
-        console.log('done with middlewares');
         next();
     }
     else {
