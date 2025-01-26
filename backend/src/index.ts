@@ -3,10 +3,12 @@ import env from 'dotenv';
 import mongoose from 'mongoose';
 import {user} from './routes/user_routes';
 import {todo} from './routes/todo_routes';
+import cors from 'cors';
+
 env.config();
 
 const app = express();
-
+app.use(cors());
 const port = process.env.PORT || 3000;
 
 app.use(express.json());

@@ -164,11 +164,8 @@ const getTodosbytags = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const userId = req.userId;
         const { tags } = req.body;
-        console.log(tags);
         const tagIds = yield tag_1.TagModel.find({ name: { $in: tags } }).select('_id');
         const tagObjectIds = tagIds.map(tag => tag._id);
-        console.log('Tag ObjectIds:', tagObjectIds);
-        // Find todos with the specified tags
         const todos = yield todo_1.TodoModel.find({
             userId,
             tags: { $in: tagObjectIds }
