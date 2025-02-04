@@ -23,8 +23,8 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 const port = process.env.PORT || 3000;
 app.use(express_1.default.json());
-app.use('/', user_routes_1.user);
-app.use('/', todo_routes_1.todo);
+app.use('/api/v1', user_routes_1.user);
+app.use('/api/v1', todo_routes_1.todo);
 app.listen(port, () => __awaiter(void 0, void 0, void 0, function* () {
     yield mongoose_1.default.connect(process.env.MONGODB_URL);
     console.log('Connected to database');

@@ -1,16 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import env from 'dotenv';
-env.config();
+import { JWT_PASSWORD } from '../config';
+
 
 interface CustomRequest extends Request {
     userId?: string;
 }
 
-const jwt_secret = process.env.JWT_PASSWORD as string;
 export const usermiddlewares = (req:CustomRequest, res:Response, next:NextFunction)=>{
+    console.log(req.headers.authorization);
     const token = req.headers.authorization as string;
-    const decoded = jwt.verify(token, jwt_secret);
+    if(!token){
+        res.status(401).send({
+            message:'unauthorized'
+        });
+        return;
+    }
+    console.log(token);
+    const decoded = jwt.verify(token, JWT_PASSWORD);
+    console.log(token);
+    console.log(decoded);
     if(decoded){
         if (typeof decoded === "string") {
             res.status(403).json({
