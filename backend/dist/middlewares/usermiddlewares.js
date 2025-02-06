@@ -6,10 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.usermiddlewares = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../config");
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
 const usermiddlewares = (req, res, next) => {
-    console.log(req.headers.authorization);
     const token = req.headers.authorization;
     if (!token) {
         res.status(401).send({
@@ -17,10 +14,7 @@ const usermiddlewares = (req, res, next) => {
         });
         return;
     }
-    console.log(token);
     const decoded = jsonwebtoken_1.default.verify(token, config_1.JWT_PASSWORD);
-    console.log(token);
-    console.log(decoded);
     if (decoded) {
         if (typeof decoded === "string") {
             res.status(403).json({

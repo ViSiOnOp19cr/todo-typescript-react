@@ -1,5 +1,5 @@
 import express,{Request} from 'express';
-import { addTodo, deleteTodo, getTodos, updateTodo, getTodosbytags,addtags } from '../controllers/todo_cont';
+import { addTodo, deleteTodo, getTodos, updateTodo, getTodosbytags,addtags, gettags } from '../controllers/todo_cont';
 import { usermiddlewares } from '../middlewares/usermiddlewares';
 
 export const todo  = express.Router();
@@ -14,10 +14,11 @@ todo.get('/gettodos', usermiddlewares, async (req,res)=>{
 todo.post('/addtodo', usermiddlewares, async(req,res)=>{
     addTodo(req,res);
 });
-todo.delete('/deletes', usermiddlewares, async(req,res)=>{
+todo.delete('/delete/:id', usermiddlewares, async(req,res)=>{
     deleteTodo(req,res);
 });
 todo.put('/update', usermiddlewares , async(req,res)=>{
+    console.log('put called')
     updateTodo(req,res);
 });
 todo.get('/gettodobytags', usermiddlewares , async(req,res)=>{
@@ -25,4 +26,7 @@ todo.get('/gettodobytags', usermiddlewares , async(req,res)=>{
 });
 todo.post('/addtags', usermiddlewares, async(req,res)=>{
     addtags(req,res);
+});
+todo.get('/gettags', usermiddlewares, async(req,res)=>{
+    gettags(req,res);
 });
