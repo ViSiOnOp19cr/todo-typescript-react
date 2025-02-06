@@ -18,7 +18,6 @@ todo.delete('/delete/:id', usermiddlewares, async(req,res)=>{
     deleteTodo(req,res);
 });
 todo.put('/update', usermiddlewares , async(req,res)=>{
-    console.log('put called')
     updateTodo(req,res);
 });
 todo.get('/gettodobytags', usermiddlewares , async(req,res)=>{

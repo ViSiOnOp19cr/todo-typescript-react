@@ -126,34 +126,35 @@ const deleteTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.deleteTodo = deleteTodo;
 const updateTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { title, content, tags, todoId } = req.body;
+        const { title, content, tags: rawTags, todoId } = req.body;
         const userId = req.userId;
-        console.log(userId, title, content, tags);
-        const tagIds = yield tag_1.TagModel.findOneAndUpdate({
-            _id: todoId,
-            userId
-        }, {
+        console.log(userId, title, content, rawTags, todoId);
+        // Ensure tags is always an array
+        const tags = Array.isArray(rawTags) ? rawTags : (typeof rawTags === 'string' ? rawTags.split(',').map(tag => tag.trim()) : []);
+        // Validate if the todo exists and belongs to the user
+        const existingTodo = yield todo_1.TodoModel.findOne({ _id: todoId, userId });
+        if (!existingTodo) {
+            return res.status(404).json({ message: 'Todo not found or unauthorized' });
+        }
+        // Handle tags properly: find or create each tag and store its ObjectId
+        const tagIds = yield Promise.all(tags.map((tagName) => __awaiter(void 0, void 0, void 0, function* () {
+            let tag = yield tag_1.TagModel.findOne({ name: tagName, userId });
+            if (!tag) {
+                tag = yield new tag_1.TagModel({ name: tagName, userId }).save();
+            }
+            return tag._id; // Store ObjectId reference
+        })));
+        // Update the todo with the new data
+        yield todo_1.TodoModel.findByIdAndUpdate(todoId, {
             title,
             content,
-            tags
-        }, {
-            new: true
+            tags: tagIds, // Updating tags with ObjectIds
         });
-        if (tagIds) {
-            res.status(200).send({
-                message: 'Todo updated successfully'
-            });
-        }
-        else {
-            res.status(400).send({
-                message: 'Bad request'
-            });
-        }
+        res.status(200).json({ message: 'Todo updated successfully' });
     }
-    catch (e) {
-        res.status(500).send({
-            message: 'internal server error'
-        });
+    catch (error) {
+        console.error('Error updating todo:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.updateTodo = updateTodo;

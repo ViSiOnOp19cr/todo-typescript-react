@@ -33,7 +33,7 @@ export const getTodos = async (req: CustomRequest, res: Response) => {
 export const addTodo = async(req:CustomRequest,res:Response)=>{
     const {title,content,tags} = req.body;
     const userId = req.userId!;
-    console.log(userId, title, content, tags);
+
     try{
         const tagIds = await TagModel.findOne({name:tags});
         if(tagIds){
@@ -90,8 +90,6 @@ export const deleteTodo = async(req:CustomRequest, res:Response)=>{
     try{
         const userId = req.userId;
         const {id}= req.params;
-        console.log(id);
-        // Check if the todo exists and belongs to the user
         const todo = await TodoModel.findOne({ _id: id, userId });
         if (!todo) {
             console.log('Todo not found or user not authorized to delete this todo');
@@ -119,37 +117,47 @@ export const deleteTodo = async(req:CustomRequest, res:Response)=>{
     }
 
 };
-export const updateTodo = async(req:CustomRequest, res:Response)=>{
-    try{
-        const {title,content,tags,todoId} = req.body;
+export const updateTodo = async (req: CustomRequest, res: Response) => {
+    try {
+        const { title, content, tags: rawTags, todoId } = req.body;
         const userId = req.userId!;
-        console.log(userId, title, content, tags);
-        const tagIds = await TagModel.findOneAndUpdate({
-            _id:todoId,
-            userId
-        },{
-            title,
-            content,
-            tags
-        });
-        if(tagIds){
-            res.status(200).send({
-                message:'Todo updated successfully'
-            });
+        const tags = Array.isArray(rawTags) ? rawTags : (typeof rawTags === 'string' ? rawTags.split(',').map(tag => tag.trim()) : []);
+
+        const existingTodo = await TodoModel.findOne({ _id: todoId, userId });
+
+        if (!existingTodo) {
+            return res.status(404).json({ message: 'Todo not found or unauthorized' });
         }
-        else{
-            res.status(400).send({
-                message:'Bad request'
-            });
-        }
-    }
-    
-    catch(e){
-        res.status(500).send({
-            message:'internal server error'
-        });
+
+        const tagIds = await Promise.all(
+            tags.map(async (tagName: string) => {
+                let tag = await TagModel.findOne({ name: tagName, userId });
+
+                if (!tag) {
+                    tag = await new TagModel({ name: tagName, userId }).save();
+                }
+
+                return tag._id;
+            })
+        );
+        await TodoModel.findByIdAndUpdate(
+            todoId,
+            {
+                title,
+                content,
+                tags: tagIds, 
+            }
+            
+        );
+
+        res.status(200).json({ message: 'Todo updated successfully' });
+    } catch (error) {
+        console.error('Error updating todo:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+
 export const getTodosbytags = async(req:CustomRequest, res:Response)=>{
     try{
         const userId = req.userId;

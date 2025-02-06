@@ -3,9 +3,11 @@ import {Button} from '../ui/button'
 import {useRef} from 'react'
 import axios from 'axios';
 import { API_URL } from '../../config';
+import {useNavigate} from 'react-router-dom'
 export function Login(){
     const usernameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
     const handlelogin = async () =>{
         const username = usernameRef.current?.value;
         const password = usernameRef.current?.value;
@@ -13,7 +15,11 @@ export function Login(){
             email:username,
             password
         })
-        console.log(response);
+        if(response.status === 200){
+            const jwt = (response.data as { token: string }).token;
+            localStorage.setItem('token',jwt);
+            navigate('/');
+        }
     }
 
     return (
