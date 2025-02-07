@@ -37,7 +37,6 @@ exports.getTodos = getTodos;
 const addTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { title, content, tags } = req.body;
     const userId = req.userId;
-    console.log(userId, title, content, tags);
     try {
         const tagIds = yield tag_1.TagModel.findOne({ name: tags });
         if (tagIds) {
@@ -94,8 +93,6 @@ const deleteTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const userId = req.userId;
         const { id } = req.params;
-        console.log(id);
-        // Check if the todo exists and belongs to the user
         const todo = yield todo_1.TodoModel.findOne({ _id: id, userId });
         if (!todo) {
             console.log('Todo not found or user not authorized to delete this todo');
@@ -128,27 +125,22 @@ const updateTodo = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const { title, content, tags: rawTags, todoId } = req.body;
         const userId = req.userId;
-        console.log(userId, title, content, rawTags, todoId);
-        // Ensure tags is always an array
         const tags = Array.isArray(rawTags) ? rawTags : (typeof rawTags === 'string' ? rawTags.split(',').map(tag => tag.trim()) : []);
-        // Validate if the todo exists and belongs to the user
         const existingTodo = yield todo_1.TodoModel.findOne({ _id: todoId, userId });
         if (!existingTodo) {
             return res.status(404).json({ message: 'Todo not found or unauthorized' });
         }
-        // Handle tags properly: find or create each tag and store its ObjectId
         const tagIds = yield Promise.all(tags.map((tagName) => __awaiter(void 0, void 0, void 0, function* () {
             let tag = yield tag_1.TagModel.findOne({ name: tagName, userId });
             if (!tag) {
                 tag = yield new tag_1.TagModel({ name: tagName, userId }).save();
             }
-            return tag._id; // Store ObjectId reference
+            return tag._id;
         })));
-        // Update the todo with the new data
         yield todo_1.TodoModel.findByIdAndUpdate(todoId, {
             title,
             content,
-            tags: tagIds, // Updating tags with ObjectIds
+            tags: tagIds,
         });
         res.status(200).json({ message: 'Todo updated successfully' });
     }
